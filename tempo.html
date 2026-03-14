@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Previsão do Tempo – Blumenau</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#FF6B00;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;display:flex;padding:40px 50px;gap:30px}
+  .now{flex:1.2;background:#161b22;border-radius:20px;padding:40px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;border:1px solid #30363d}
+  .now .city{font-size:26px;color:#8b949e;font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:2px}
+  .now .icon{font-size:100px;margin:10px 0}
+  .now .temp{font-size:110px;font-weight:700;color:#FF6B00;line-height:1}
+  .now .unit{font-size:40px;color:#8b949e;vertical-align:super}
+  .now .desc{font-size:28px;color:#c9d1d9;margin-top:10px;font-weight:500}
+  .now .feels{font-size:20px;color:#8b949e;margin-top:6px}
+  .now .details{display:flex;gap:30px;margin-top:24px}
+  .now .detail{text-align:center}
+  .now .detail .val{font-size:22px;font-weight:600;color:#fff}
+  .now .detail .lbl{font-size:14px;color:#8b949e;margin-top:3px}
+  .forecast{flex:2;display:flex;flex-direction:column;gap:14px;justify-content:center}
+  .forecast-title{font-size:18px;color:#8b949e;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+  .day-card{background:#161b22;border-radius:16px;padding:22px 30px;display:flex;align-items:center;justify-content:space-between;border:1px solid #30363d}
+  .day-card .day-name{font-size:22px;font-weight:600;min-width:140px}
+  .day-card .day-icon{font-size:42px}
+  .day-card .day-desc{font-size:18px;color:#8b949e;flex:1;margin:0 20px}
+  .day-card .temps{font-size:24px;font-weight:700}
+  .day-card .temps .min{color:#58a6ff;margin-left:12px;font-size:20px;font-weight:400}
+  .day-card .rain{font-size:16px;color:#8b949e;margin-left:16px}
+  .bottom{padding:14px 50px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
+  .bottom .brand{font-size:16px;color:#8b949e}
+  .bottom .updated{font-size:14px;color:#484f58}
+  .loading{flex:1;display:flex;align-items:center;justify-content:center;font-size:28px;color:#8b949e}
+  .error{background:#2d1f1f;border:1px solid #f85149;border-radius:16px;padding:30px;text-align:center;color:#f85149;font-size:20px}
+  .rain-chance{font-size:16px;color:#58a6ff}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">🌤 Previsão do Tempo — Blumenau, SC</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+
+<div class="main" id="main"><div class="loading">Carregando previsão...</div></div>
+
+<div class="bottom">
+  <span class="brand">Digital TV · Conteúdo ao vivo</span>
+  <span class="updated" id="updated">Aguardando...</span>
+</div>
+
+<script>
+const ICONS={
+  113:'☀️',116:'⛅',119:'🌥️',122:'☁️',
+  143:'🌫️',176:'🌦️',179:'🌨️',182:'🌧️',
+  185:'🌧️',200:'⛈️',227:'❄️',230:'🌨️',
+  248:'🌫️',260:'🌫️',263:'🌦️',266:'🌧️',
+  281:'🌧️',284:'🌧️',293:'🌦️',296:'🌧️',
+  299:'🌧️',302:'🌧️',305:'🌧️',308:'🌧️',
+  311:'🌧️',314:'🌧️',317:'🌧️',320:'❄️',
+  323:'❄️',326:'❄️',329:'❄️',332:'❄️',
+  335:'❄️',338:'❄️',350:'🌧️',353:'🌦️',
+  356:'🌧️',359:'🌧️',362:'🌧️',365:'🌧️',
+  368:'🌨️',371:'❄️',374:'🌧️',377:'🌧️',
+  386:'⛈️',389:'⛈️',392:'⛈️',395:'⛈️'
+};
+const DAYS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const DESC={
+  113:'Céu limpo',116:'Parcialmente nublado',119:'Nublado',122:'Muito nublado',
+  143:'Névoa',176:'Chuva fraca',200:'Tempestade',227:'Neve fraca',263:'Garoa',
+  293:'Chuva fraca',296:'Chuva fraca',299:'Chuva moderada',302:'Chuva moderada',
+  305:'Chuva forte',308:'Chuva forte',311:'Chuva com granizo',353:'Chuviscos',
+  356:'Chuva',386:'Tempestade',389:'Tempestade forte'
+};
+
+function getIcon(code){return ICONS[code]||'🌡️'}
+function getDesc(code){return DESC[code]||'Variável'}
+
+function updateClock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+async function load(){
+  try{
+    const r=await fetch('https://wttr.in/Blumenau+SC?format=j1');
+    const d=await r.json();
+    const cur=d.current_condition[0];
+    const w=d.weather;
+
+    const tempC=parseInt(cur.temp_C);
+    const feelsC=parseInt(cur.FeelsLikeC);
+    const humidity=parseInt(cur.humidity);
+    const windKm=parseInt(cur.windspeedKmph);
+    const code=parseInt(cur.weatherCode);
+    const desc=cur.weatherDesc?.[0]?.value||getDesc(code);
+
+    let forecastHTML='';
+    const dayNames=['Hoje','Amanhã',''];
+    w.forEach((day,i)=>{
+      const date=new Date(day.date);
+      const dayLabel=i<2?dayNames[i]:DAYS[date.getDay()];
+      const maxC=parseInt(day.maxtempC);
+      const minC=parseInt(day.mintempC);
+      const rain=parseInt(day.hourly[4]?.chanceofrain||0);
+      const dc=parseInt(day.hourly[4]?.weatherCode||113);
+      const ddesc=day.hourly[4]?.weatherDesc?.[0]?.value||getDesc(dc);
+      forecastHTML+=`
+        <div class="day-card">
+          <span class="day-name">${dayLabel}</span>
+          <span class="day-icon">${getIcon(dc)}</span>
+          <span class="day-desc">${ddesc}</span>
+          <span class="temps">${maxC}°<span class="min">${minC}°</span></span>
+          <span class="rain">💧${rain}%</span>
+        </div>`;
+    });
+
+    document.getElementById('main').innerHTML=`
+      <div class="now">
+        <div class="city">Blumenau · SC</div>
+        <div class="icon">${getIcon(code)}</div>
+        <div class="temp">${tempC}<span class="unit">°C</span></div>
+        <div class="desc">${desc}</div>
+        <div class="feels">Sensação: ${feelsC}°C</div>
+        <div class="details">
+          <div class="detail"><div class="val">💧 ${humidity}%</div><div class="lbl">Umidade</div></div>
+          <div class="detail"><div class="val">💨 ${windKm} km/h</div><div class="lbl">Vento</div></div>
+        </div>
+      </div>
+      <div class="forecast">
+        <div class="forecast-title">Próximos dias</div>
+        ${forecastHTML}
+      </div>`;
+
+    const now=new Date();
+    document.getElementById('updated').textContent=
+      'Atualizado às '+now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){
+    document.getElementById('main').innerHTML=
+      `<div class="loading"><div class="error">Sem conexão. Tentando novamente em 1 min...</div></div>`;
+  }
+}
+
+updateClock();
+setInterval(updateClock,1000);
+load();
+setInterval(load,5*60*1000);
+setTimeout(()=>location.reload(),30*60*1000);
+</script>
+</body>
+</html>

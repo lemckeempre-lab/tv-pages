@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Notícias – Blumenau</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#FF6B00;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;padding:30px 50px;display:flex;flex-direction:column;gap:0;overflow:hidden}
+  .section-title{font-size:15px;color:#8b949e;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+  .news-list{display:flex;flex-direction:column;gap:12px;flex:1}
+  .news-card{background:#161b22;border-radius:16px;padding:22px 28px;border:1px solid #30363d;display:flex;flex-direction:column;gap:6px;cursor:default;flex:1}
+  .news-card.highlight{border-color:#FF6B00;background:#1a1208}
+  .news-card .source-tag{font-size:12px;color:#FF6B00;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .news-card.highlight .source-tag{color:#FF6B00}
+  .news-card h2{font-size:21px;font-weight:600;line-height:1.35;color:#e6edf3}
+  .news-card.highlight h2{font-size:24px;color:#fff}
+  .news-card .time{font-size:13px;color:#484f58;margin-top:2px}
+  .ticker-wrap{background:#161b22;border-top:1px solid #30363d;padding:12px 50px;overflow:hidden;white-space:nowrap}
+  .ticker{display:inline-block;animation:ticker 40s linear infinite;font-size:16px;color:#8b949e}
+  @keyframes ticker{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+  .bottom{padding:10px 50px;background:#0d1117;border-top:1px solid #30363d;display:flex;justify-content:space-between}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .bottom .updated{font-size:13px;color:#484f58}
+  .loading{flex:1;display:flex;align-items:center;justify-content:center;font-size:26px;color:#8b949e}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">📰 Notícias — Blumenau e Santa Catarina</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+
+<div class="main" id="main"><div class="loading">Carregando notícias...</div></div>
+
+<div class="ticker-wrap"><span class="ticker" id="ticker">Carregando destaques...</span></div>
+
+<div class="bottom">
+  <span class="brand">Digital TV · Notícias ao vivo</span>
+  <span class="updated" id="updated">Aguardando...</span>
+</div>
+
+<script>
+const RSS_FEEDS=[
+  {url:'https://g1.globo.com/sc/santa-catarina/rss2.0.xml',name:'G1 SC'},
+  {url:'https://www.nsctotal.com.br/rss.xml',name:'NSC Total'},
+  {url:'https://ndmais.com.br/feed/',name:'ND Mais'}
+];
+const API='https://api.rss2json.com/v1/api.json?rss_url=';
+
+function updateClock(){
+  document.getElementById('clock').textContent=
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function timeAgo(dateStr){
+  const diff=(Date.now()-new Date(dateStr))/(1000*60);
+  if(diff<60)return`há ${Math.round(diff)} min`;
+  if(diff<1440)return`há ${Math.round(diff/60)}h`;
+  return`há ${Math.round(diff/1440)} dias`;
+}
+
+function strip(html){
+  return html.replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&')
+    .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#[0-9]+;/g,'').trim();
+}
+
+async function tryFeed(feed){
+  const r=await fetch(API+encodeURIComponent(feed.url)+'&count=6');
+  const d=await r.json();
+  if(d.status==='ok'&&d.items?.length>0)return{items:d.items,name:feed.name};
+  return null;
+}
+
+async function load(){
+  let allItems=[];
+  for(const feed of RSS_FEEDS){
+    try{
+      const res=await tryFeed(feed);
+      if(res){
+        res.items.slice(0,4).forEach(item=>
+          allItems.push({...item,source:res.name}));
+      }
+    }catch(e){}
+  }
+
+  if(allItems.length===0){
+    document.getElementById('main').innerHTML=
+      '<div class="loading">Sem conexão. Tentando novamente...</div>';
+    return;
+  }
+
+  // sort by date
+  allItems.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+  const top=allItems.slice(0,5);
+
+  let html='<div class="section-title">Últimas notícias</div><div class="news-list">';
+  top.forEach((item,i)=>{
+    const title=strip(item.title||'').substring(0,120);
+    const ago=timeAgo(item.pubDate);
+    html+=`<div class="news-card${i===0?' highlight':''}">
+      <span class="source-tag">${item.source}</span>
+      <h2>${title}</h2>
+      <span class="time">${ago}</span>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('main').innerHTML=html;
+
+  const tickerText=top.map(i=>strip(i.title||'').substring(0,80)).join('   ·   ');
+  document.getElementById('ticker').textContent=tickerText;
+
+  document.getElementById('updated').textContent=
+    'Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+updateClock();
+setInterval(updateClock,1000);
+load();
+setInterval(load,10*60*1000);
+setTimeout(()=>location.reload(),60*60*1000);
+</script>
+</body>
+</html>

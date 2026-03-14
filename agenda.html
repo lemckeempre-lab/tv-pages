@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Agenda Cultural – Blumenau</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#FF6B00;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;padding:28px 50px;display:flex;gap:24px;overflow:hidden}
+  .left{flex:1.4;display:flex;flex-direction:column;gap:12px}
+  .right{flex:1;display:flex;flex-direction:column;gap:12px}
+  .section-title{font-size:14px;color:#8b949e;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+  .event-card{background:#161b22;border-radius:14px;border:1px solid #30363d;overflow:hidden;display:flex;flex:1}
+  .event-card.highlight{border-color:#FF6B00}
+  .event-date-col{background:#FF6B00;min-width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px}
+  .event-date-col .day-num{font-size:36px;font-weight:700;line-height:1;color:#fff}
+  .event-date-col .month{font-size:13px;font-weight:600;color:#fff;opacity:0.85;text-transform:uppercase}
+  .event-info{padding:16px 20px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:4px}
+  .event-info .tag{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:1px}
+  .event-info h3{font-size:19px;font-weight:600;color:#e6edf3;line-height:1.3}
+  .event-info .place{font-size:14px;color:#8b949e}
+  .news-card{background:#161b22;border-radius:14px;padding:18px 22px;border:1px solid #30363d;flex:1;display:flex;flex-direction:column;gap:5px}
+  .news-card .tag{font-size:11px;color:#FF6B00;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .news-card h3{font-size:17px;font-weight:600;line-height:1.35;color:#e6edf3}
+  .news-card .meta{font-size:12px;color:#484f58}
+  .bottom{padding:10px 50px;background:#0d1117;border-top:1px solid #30363d;display:flex;justify-content:space-between}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .bottom .updated{font-size:13px;color:#484f58}
+  .loading{flex:1;display:flex;align-items:center;justify-content:center;font-size:26px;color:#8b949e}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">🎭 Agenda Cultural — Blumenau</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+
+<div class="main" id="main"><div class="loading">Carregando agenda...</div></div>
+
+<div class="bottom">
+  <span class="brand">Digital TV · Cultura &amp; Lazer</span>
+  <span class="updated" id="updated">Aguardando...</span>
+</div>
+
+<script>
+const RSS_FEEDS=[
+  {url:'https://www.nsctotal.com.br/rss.xml',name:'NSC Total'},
+  {url:'https://ndmais.com.br/feed/',name:'ND Mais'},
+  {url:'https://agendaculturalblumenau.com.br/feed/',name:'Agenda Blumenau'}
+];
+const API='https://api.rss2json.com/v1/api.json?rss_url=';
+const MESES=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+// Eventos fixos de placeholder — você substitui por eventos reais semanalmente
+// Ou pode deixar puxar do RSS e filtrar por palavras-chave culturais
+const EVENTOS_FIXOS=[
+  {dia:15,mes:3,titulo:'Mostra de Teatro Universitário',local:'Teatro Carlos Gomes',tipo:'Teatro'},
+  {dia:16,mes:3,titulo:'Feira de Artesanato Regional',local:'Parque Vila Germânica',tipo:'Artesanato'},
+  {dia:17,mes:3,titulo:'Corrida Noturna de Blumenau',local:'Rua XV de Novembro',tipo:'Esporte'},
+  {dia:22,mes:3,titulo:'Show de Jazz & Blues',local:'Centro Cultural',tipo:'Música'},
+];
+
+function updateClock(){
+  document.getElementById('clock').textContent=
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function strip(html){
+  return html.replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&')
+    .replace(/&#[0-9]+;/g,'').trim();
+}
+
+function timeAgo(dateStr){
+  const diff=(Date.now()-new Date(dateStr))/(1000*60);
+  if(diff<60)return`há ${Math.round(diff)} min`;
+  if(diff<1440)return`há ${Math.round(diff/60)}h`;
+  return new Date(dateStr).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+}
+
+const CULTURAL_KEYWORDS=['show','festival','exposição','teatro','cinema','museu',
+  'evento','cultural','feira','música','dança','arte','concerto','peça','sarau'];
+
+async function loadNews(){
+  let items=[];
+  for(const f of RSS_FEEDS){
+    try{
+      const r=await fetch(API+encodeURIComponent(f.url)+'&count=10');
+      const d=await r.json();
+      if(d.status==='ok'&&d.items?.length){
+        d.items.forEach(it=>{
+          const t=(it.title||'').toLowerCase();
+          const hasCultural=CULTURAL_KEYWORDS.some(k=>t.includes(k));
+          if(hasCultural||f.name==='Agenda Blumenau')
+            items.push({...it,source:f.name});
+        });
+      }
+    }catch(e){}
+  }
+  return items.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate)).slice(0,4);
+}
+
+async function load(){
+  const newsItems=await loadNews();
+
+  let eventsHTML='<div class="section-title">Próximos eventos</div>';
+  EVENTOS_FIXOS.forEach((ev,i)=>{
+    eventsHTML+=`<div class="event-card${i===0?' highlight':''}">
+      <div class="event-date-col">
+        <span class="day-num">${String(ev.dia).padStart(2,'0')}</span>
+        <span class="month">${MESES[ev.mes-1]}</span>
+      </div>
+      <div class="event-info">
+        <span class="tag">${ev.tipo}</span>
+        <h3>${ev.titulo}</h3>
+        <span class="place">📍 ${ev.local}</span>
+      </div>
+    </div>`;
+  });
+
+  let newsHTML='<div class="section-title">Cultura &amp; Lazer — Notícias</div>';
+  if(newsItems.length===0){
+    newsHTML+='<div class="news-card"><span class="tag">NSC</span><h3>Confira a programação cultural desta semana em Blumenau</h3><span class="meta">Atualizado</span></div>';
+  } else {
+    newsItems.forEach(item=>{
+      const title=strip(item.title||'').substring(0,90);
+      newsHTML+=`<div class="news-card">
+        <span class="tag">${item.source}</span>
+        <h3>${title}</h3>
+        <span class="meta">${timeAgo(item.pubDate)}</span>
+      </div>`;
+    });
+  }
+
+  document.getElementById('main').innerHTML=`
+    <div class="left">${eventsHTML}</div>
+    <div class="right">${newsHTML}</div>`;
+
+  document.getElementById('updated').textContent=
+    'Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+updateClock();
+setInterval(updateClock,1000);
+load();
+setInterval(load,15*60*1000);
+setTimeout(()=>location.reload(),90*60*1000);
+</script>
+</body>
+</html>

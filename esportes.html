@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Esportes – Resultados</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#FF6B00;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;padding:28px 50px;display:flex;gap:28px;overflow:hidden}
+  .col{flex:1;display:flex;flex-direction:column;gap:12px}
+  .col-title{font-size:14px;color:#8b949e;text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+  .news-card{background:#161b22;border-radius:14px;padding:18px 22px;border:1px solid #30363d;flex:1;display:flex;flex-direction:column;gap:5px}
+  .news-card.highlight{border-color:#FF6B00;background:#1a1208}
+  .news-card .tag{font-size:11px;color:#FF6B00;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .news-card h3{font-size:18px;font-weight:600;line-height:1.35;color:#e6edf3}
+  .news-card.highlight h3{font-size:20px;color:#fff}
+  .news-card .meta{font-size:12px;color:#484f58}
+  .table-wrap{background:#161b22;border-radius:14px;padding:20px;border:1px solid #30363d;overflow:hidden}
+  .table-wrap table{width:100%;border-collapse:collapse;font-size:15px}
+  .table-wrap th{font-size:11px;color:#8b949e;text-transform:uppercase;padding:0 6px 10px;text-align:center;font-weight:500}
+  .table-wrap th:first-child{text-align:left;padding-left:0}
+  .table-wrap td{padding:8px 6px;border-bottom:1px solid #21262d;text-align:center;color:#c9d1d9}
+  .table-wrap td:first-child{text-align:left;padding-left:0;font-weight:600;color:#fff}
+  .table-wrap tr:last-child td{border:none}
+  .table-wrap .pos{color:#8b949e;font-weight:400;font-size:13px;min-width:20px;text-align:center}
+  .table-wrap .highlight-row td{color:#FF6B00!important}
+  .bottom{padding:10px 50px;background:#0d1117;border-top:1px solid #30363d;display:flex;justify-content:space-between}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .bottom .updated{font-size:13px;color:#484f58}
+  .loading{flex:1;display:flex;align-items:center;justify-content:center;font-size:26px;color:#8b949e}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">⚽ Esportes — Resultados &amp; Notícias</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+
+<div class="main" id="main"><div class="loading">Carregando esportes...</div></div>
+
+<div class="bottom">
+  <span class="brand">Digital TV · Esportes ao vivo</span>
+  <span class="updated" id="updated">Aguardando...</span>
+</div>
+
+<script>
+const FEEDS=[
+  {url:'https://globoesporte.globo.com/futebol/rss2.0.xml',name:'Globo Esporte'},
+  {url:'https://ge.globo.com/rss2.0.xml',name:'GE'},
+  {url:'https://www.uol.com.br/esporte/rss.htm',name:'UOL Esporte'},
+  {url:'https://esportes.r7.com/feed/',name:'R7 Esportes'}
+];
+const API='https://api.rss2json.com/v1/api.json?rss_url=';
+
+// Brasileirão Série A tabela estática (atualizada semanalmente manualmente se quiser)
+const TABELA=[
+  {pos:1,time:'Botafogo',pts:36,pg:18},
+  {pos:2,time:'Flamengo',pts:34,pg:18},
+  {pos:3,time:'Palmeiras',pts:31,pg:18},
+  {pos:4,time:'Fortaleza',pts:30,pg:18},
+  {pos:5,time:'Cruzeiro',pts:28,pg:18},
+  {pos:6,time:'Bahia',pts:27,pg:18},
+  {pos:7,time:'São Paulo',pts:26,pg:18},
+];
+
+function updateClock(){
+  document.getElementById('clock').textContent=
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function strip(html){
+  return html.replace(/<[^>]*>/g,'').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&')
+    .replace(/&#[0-9]+;/g,'').trim();
+}
+
+function timeAgo(dateStr){
+  const diff=(Date.now()-new Date(dateStr))/(1000*60);
+  if(diff<60)return`há ${Math.round(diff)} min`;
+  if(diff<1440)return`há ${Math.round(diff/60)}h`;
+  return new Date(dateStr).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+}
+
+async function load(){
+  let items=[];
+  for(const f of FEEDS){
+    try{
+      const r=await fetch(API+encodeURIComponent(f.url)+'&count=4');
+      const d=await r.json();
+      if(d.status==='ok'&&d.items?.length)
+        d.items.slice(0,3).forEach(it=>items.push({...it,source:f.name}));
+    }catch(e){}
+    if(items.length>=6)break;
+  }
+  items.sort((a,b)=>new Date(b.pubDate)-new Date(a.pubDate));
+  const top=items.slice(0,5);
+
+  let leftHTML='<div class="col-title">Últimas notícias</div>';
+  top.forEach((item,i)=>{
+    const title=strip(item.title||'').substring(0,100);
+    leftHTML+=`<div class="news-card${i===0?' highlight':''}">
+      <span class="tag">${item.source}</span>
+      <h3>${title}</h3>
+      <span class="meta">${timeAgo(item.pubDate)}</span>
+    </div>`;
+  });
+
+  let tableHTML=`<div class="col-title">Brasileirão Série A</div>
+  <div class="table-wrap"><table>
+    <tr><th></th><th style="text-align:left">Time</th><th>PG</th><th>PTS</th></tr>`;
+  TABELA.forEach(row=>{
+    tableHTML+=`<tr>
+      <td class="pos">${row.pos}</td>
+      <td>${row.time}</td>
+      <td>${row.pg}</td>
+      <td><strong>${row.pts}</strong></td>
+    </tr>`;
+  });
+  tableHTML+='</table></div>';
+
+  document.getElementById('main').innerHTML=`
+    <div class="col">${leftHTML}</div>
+    <div class="col" style="flex:0.7">${tableHTML}</div>`;
+
+  document.getElementById('updated').textContent=
+    'Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+updateClock();
+setInterval(updateClock,1000);
+load();
+setInterval(load,10*60*1000);
+setTimeout(()=>location.reload(),60*60*1000);
+</script>
+</body>
+</html>
