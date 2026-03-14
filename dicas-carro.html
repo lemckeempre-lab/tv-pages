@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Dicas de Carro</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#FF6B00;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:50px;text-align:center;gap:28px}
+  .icon{font-size:90px;animation:pulse 3s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+  .categoria{font-size:15px;color:#FF6B00;text-transform:uppercase;letter-spacing:3px;font-weight:600}
+  .dica{font-size:38px;font-weight:700;color:#e6edf3;line-height:1.35;max-width:900px}
+  .detalhe{font-size:22px;color:#8b949e;max-width:820px;line-height:1.5}
+  .progress-wrap{width:400px;height:5px;background:#21262d;border-radius:3px;overflow:hidden}
+  .progress-bar{height:100%;background:#FF6B00;border-radius:3px;transition:width 0.5s linear}
+  .bottom{padding:12px 50px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .counter{font-size:14px;color:#484f58}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label" id="top-label">🚗 Dicas de Carro — Manutenção e Economia</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+<div class="main">
+  <div class="icon" id="icon">🔧</div>
+  <div class="categoria" id="categoria">Manutenção</div>
+  <div class="dica" id="dica"></div>
+  <div class="detalhe" id="detalhe"></div>
+  <div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+</div>
+<div class="bottom">
+  <span class="brand">Digital TV · Dicas Automotivas</span>
+  <span class="counter" id="counter">1 / 10</span>
+</div>
+<script>
+const DICAS=[
+  {cat:'Manutenção',icon:'🔧',dica:'Troque o óleo do motor a cada 5.000 km',detalhe:'Óleo velho perde viscosidade e aumenta o desgaste do motor. Use sempre o óleo indicado pelo fabricante no manual.',tipo:'manutencao'},
+  {cat:'Economia',icon:'⛽',dica:'Calibre os pneus semanalmente',detalhe:'Pneus com pressão correta reduzem o consumo de combustível em até 3% e aumentam a segurança nas curvas.',tipo:'economia'},
+  {cat:'Manutenção',icon:'🔋',dica:'A bateria dura em média 2 a 3 anos',detalhe:'Se o carro demora para pegar ou as luzes ficam fracas, faça uma revisão na bateria. Evite deixar acessórios ligados com o motor desligado.',tipo:'manutencao'},
+  {cat:'Economia',icon:'💨',dica:'Evite acelerar e frear bruscamente',detalhe:'A direção suave pode economizar até 20% de combustível. Antecipe semáforos e mantenha distância segura do veículo à frente.',tipo:'economia'},
+  {cat:'Manutenção',icon:'❄️',dica:'Verifique o fluido do radiador a cada 6 meses',detalhe:'O superaquecimento é uma das principais causas de problemas sérios no motor. Cheque o nível e a qualidade do fluido de arrefecimento.',tipo:'manutencao'},
+  {cat:'Economia',icon:'🔄',dica:'Troque filtros de ar sujos para economizar',detalhe:'Um filtro de ar entupido pode aumentar o consumo em até 10%. A troca é simples e barata — faça a cada 15.000 km.',tipo:'economia'},
+  {cat:'Manutenção',icon:'🛞',dica:'Faça o balanceamento e alinhamento a cada 10.000 km',detalhe:'Rodas desalinhadas causam desgaste irregular nos pneus e aumentam o consumo de combustível. Você vai sentir a diferença na direção.',tipo:'manutencao'},
+  {cat:'Economia',icon:'📱',dica:'Use o ar-condicionado de forma inteligente',detalhe:'Ligue o ar alguns minutos após sair e prefira ventilar com janelas abertas em baixas velocidades. O AC consome até 15% a mais de combustível.',tipo:'economia'},
+  {cat:'Manutenção',icon:'💧',dica:'Veja o nível do fluido de freio regularmente',detalhe:'Fluido de freio baixo ou escuro indica desgaste das pastilhas ou problema no sistema. Nunca ignore a luz de alerta de freio.',tipo:'manutencao'},
+  {cat:'Economia',icon:'🚦',dica:'Mantenha velocidade constante na estrada',detalhe:'Use o piloto automático quando disponível. Variações constantes de velocidade aumentam o consumo. A velocidade ideal é entre 80 e 100 km/h.',tipo:'economia'},
+  {cat:'Segurança',icon:'🛑',dica:'Pastilhas de freio precisam de atenção',detalhe:'Se ouvir rangido ao frear, é sinal de desgaste. Substitua as pastilhas antes que danifiquem o disco — o reparo fica muito mais caro.',tipo:'seguranca'},
+  {cat:'Segurança',icon:'🌧️',dica:'Limpadores de para-brisas: troque a cada ano',detalhe:'Borrachas ressecadas reduzem a visibilidade na chuva de forma perigosa. A troca é barata e pode salvar vidas.',tipo:'seguranca'},
+  {cat:'Manutenção',icon:'⚙️',dica:'Vela de ignição afeta diretamente o consumo',detalhe:'Velas gastas fazem o motor trabalhar mais para queimar o combustível. Troque conforme o manual — geralmente a cada 20.000 a 30.000 km.',tipo:'manutencao'},
+  {cat:'Economia',icon:'🏁',dica:'Partidas a frio: não acelere imediatamente',detalhe:'Espere 30 segundos antes de sair. O óleo precisa circular pelo motor antes de cargas altas. Isso aumenta a vida útil do motor.',tipo:'economia'},
+];
+
+// Detecta modo pelo hash da URL: dicas-carro.html (manutenção/economia) ou dicas-carro-seguranca.html
+const modo = location.hash === '#seguranca' ? 'seguranca' : 'geral';
+const filtradas = modo === 'seguranca'
+  ? DICAS.filter(d => d.tipo === 'seguranca' || d.tipo === 'manutencao')
+  : DICAS;
+
+let idx = Math.floor(Math.random() * filtradas.length);
+let progress = 0;
+const DURACAO = 14; // segundos por dica
+
+if(modo === 'seguranca'){
+  document.getElementById('top-label').textContent = '🚗 Dicas de Carro — Segurança e Trânsito';
+}
+
+function updateClock(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function show(){
+  const d = filtradas[idx % filtradas.length];
+  document.getElementById('icon').textContent = d.icon;
+  document.getElementById('categoria').textContent = d.cat;
+  document.getElementById('dica').textContent = d.dica;
+  document.getElementById('detalhe').textContent = d.detalhe;
+  document.getElementById('counter').textContent = (idx % filtradas.length + 1) + ' / ' + filtradas.length;
+  progress = 0;
+}
+
+function tick(){
+  progress += (100 / (DURACAO * 10));
+  if(progress >= 100){
+    idx++;
+    show();
+  }
+  document.getElementById('progress').style.width = Math.min(progress, 100) + '%';
+}
+
+updateClock();
+setInterval(updateClock, 1000);
+show();
+setInterval(tick, 100);
+</script>
+</body>
+</html>

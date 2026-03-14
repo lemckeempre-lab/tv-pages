@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Horóscopo do Dia</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#6e40c9;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;padding:28px 40px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+  .date-banner{font-size:16px;color:#8b949e;text-align:center;text-transform:uppercase;letter-spacing:2px;padding-bottom:8px;border-bottom:1px solid #21262d}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:1}
+  .sign-card{background:#161b22;border-radius:14px;border:1px solid #30363d;padding:16px 14px;display:flex;flex-direction:column;gap:8px;cursor:default;transition:border-color 0.3s}
+  .sign-card.active{border-color:#6e40c9;background:#1a1030}
+  .sign-card .sign-icon{font-size:36px;text-align:center}
+  .sign-card .sign-name{font-size:14px;font-weight:600;color:#e6edf3;text-align:center}
+  .sign-card .sign-period{font-size:11px;color:#8b949e;text-align:center}
+  .sign-card .stars{text-align:center;font-size:14px;letter-spacing:1px}
+  .sign-card .previsao{font-size:12px;color:#8b949e;line-height:1.4;text-align:center}
+  .bottom{padding:12px 50px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .bottom .disc{font-size:12px;color:#484f58}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">⭐ Horóscopo do Dia</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+<div class="main">
+  <div class="date-banner" id="date-banner"></div>
+  <div class="grid" id="grid"></div>
+</div>
+<div class="bottom">
+  <span class="brand">Digital TV · Horóscopo</span>
+  <span class="disc">Entretenimento — consulte um especialista para decisões importantes</span>
+</div>
+<script>
+const SIGNOS=[
+  {nome:'Áries',icon:'♈',periodo:'21/03 – 19/04'},
+  {nome:'Touro',icon:'♉',periodo:'20/04 – 20/05'},
+  {nome:'Gêmeos',icon:'♊',periodo:'21/05 – 20/06'},
+  {nome:'Câncer',icon:'♋',periodo:'21/06 – 22/07'},
+  {nome:'Leão',icon:'♌',periodo:'23/07 – 22/08'},
+  {nome:'Virgem',icon:'♍',periodo:'23/08 – 22/09'},
+  {nome:'Libra',icon:'♎',periodo:'23/09 – 22/10'},
+  {nome:'Escorpião',icon:'♏',periodo:'23/10 – 21/11'},
+  {nome:'Sagitário',icon:'♐',periodo:'22/11 – 21/12'},
+  {nome:'Capricórnio',icon:'♑',periodo:'22/12 – 19/01'},
+  {nome:'Aquário',icon:'♒',periodo:'20/01 – 18/02'},
+  {nome:'Peixes',icon:'♓',periodo:'19/02 – 20/03'},
+];
+
+// Previsões rotativas por dia da semana (7 conjuntos × 12 signos)
+const PREVISOES=[
+  ['Dia favorável para novos começos. Confie em sua intuição.','Foco nas finanças traz resultados positivos hoje.','Comunicação fluida. Ótimo dia para conversas importantes.','O lar traz conforto e clareza. Valorize sua família.','Sua energia está alta. Brilhe sem hesitar.','Organização é a chave do sucesso hoje.','Harmonia nos relacionamentos está em destaque.','Transformações positivas estão a caminho.','Expansão e otimismo guiam seu dia.','Disciplina e paciência rendem bons frutos.','Inovação e criatividade em alta hoje.','Intuição aguçada. Confie nos seus sentimentos.'],
+  ['Energia renovada para superar desafios.','Invista em si mesmo. O retorno será certo.','Novas ideias surgem com facilidade hoje.','Cuide de quem você ama. Amor correspondido.','Reconhecimento profissional à vista.','Detalhes fazem toda a diferença hoje.','Decisões importantes ficam mais claras.','Mergulhe fundo. A verdade liberta.','Viagens ou estudos trazem alegria.','Metas de longo prazo avançam bem.','Amizades fortalecem seu espírito hoje.','Sonhos revelam caminhos importantes.'],
+  ['Liderança natural atrai oportunidades.','Estabilidade emocional favorece decisões.','Aproveite para aprender algo novo hoje.','Sensibilidade elevada — ouça seu coração.','Criatividade em alta. Expresse-se!','Saúde em foco: cuide do corpo e da mente.','Parcerias trazem prosperidade hoje.','Intensidade emocional gera crescimento.','Otimismo é seu maior trunfo agora.','Persistência vence qualquer obstáculo.','Projetos coletivos prosperam hoje.','Compaixão e empatia abrem portas.'],
+  ['Coragem para tomar decisões difíceis.','Paciência com o ritmo das coisas traz paz.','Conversas descomplicadas fortalecem vínculos.','Proteção familiar. Lar é seu porto seguro.','Generosidade volta para você multiplicada.','Análise cuidadosa evita erros hoje.','Equilíbrio entre dar e receber é essencial.','Mistérios se revelam de forma positiva.','Boa sorte acompanha suas aventuras.','Trabalho duro será reconhecido em breve.','Independência e liberdade impulsionam você.','Imaginação fértil. Crie e inspire.'],
+  ['Ação direta leva a conquistas rápidas.','Beleza e conforto trazem satisfação hoje.','Vários projetos avançam ao mesmo tempo.','Intuição familiar em alta. Confie nela.','Palco é seu. Aproveite o momento.','Precisão e cuidado garantem qualidade.','Diplomacia resolve conflitos com elegância.','Poder de regeneração em alta hoje.','Filosofia e sabedoria iluminam o caminho.','Ambição equilibrada gera sucesso sólido.','Tecnologia e inovação a seu favor.','Rendição ao amor traz leveza ao dia.'],
+  ['Impulso criativo traz soluções inéditas.','Calma e determinação vencem qualquer desafio.','Curiosidade é sua maior força hoje.','Memórias afetivas trazem força e clareza.','Carisma atrai o que você precisa.','Método e dedicação colhem resultados.','Justiça e verdade guiam suas escolhas.','Revelações profundas trazem libertação.','Expansão de horizontes. Explore o novo.','Estrutura e planejamento favorecem conquistas.','Originalidade transforma o comum em especial.','Espiritualidade e introspecção trazem paz.'],
+  ['Renovação energética favorece novos projetos.','Gratidão pelas conquistas traz mais abundância.','Expressão clara e objetiva é valorizada hoje.','Nutrir laços afetivos fortalece seu espírito.','Entusiasmo contagiante atrai aliados poderosos.','Foco no essencial elimina o supérfluo.','Beleza nas pequenas coisas traz alegria.','Coragem emocional revela novas forças.','Aventura e liberdade renovam sua energia.','Tradição e raízes dão sustentação hoje.','Humanismo e solidariedade abrem caminhos.','Fé e esperança iluminam este dia.'],
+];
+
+function updateClock(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function render(){
+  const hoje = new Date();
+  const diaSemana = hoje.getDay();
+  const prev = PREVISOES[diaSemana];
+  const stars = ['★★★★★','★★★★☆','★★★☆☆','★★★★★','★★★☆☆','★★★★☆','★★★★★',
+                  '★★★☆☆','★★★★★','★★★★☆','★★★☆☆','★★★★★'];
+
+  document.getElementById('date-banner').textContent =
+    hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  let html='';
+  SIGNOS.forEach((s,i)=>{
+    html+=`<div class="sign-card">
+      <div class="sign-icon">${s.icon}</div>
+      <div class="sign-name">${s.nome}</div>
+      <div class="sign-period">${s.periodo}</div>
+      <div class="stars" style="color:#d29922">${stars[i]}</div>
+      <div class="previsao">${prev[i]}</div>
+    </div>`;
+  });
+  document.getElementById('grid').innerHTML=html;
+}
+
+updateClock();
+setInterval(updateClock,1000);
+render();
+setInterval(render,60*60*1000);
+</script>
+</body>
+</html>

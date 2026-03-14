@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Encerramento</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:30px;padding:40px;text-align:center;position:relative}
+  .logo-area{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .logo-box{width:220px;height:220px;background:#FF6B00;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .logo-icon{font-size:80px}
+  .logo-nome{font-size:22px;font-weight:700;color:#fff;letter-spacing:1px}
+  .logo-sub{font-size:14px;color:#fff;opacity:0.8;letter-spacing:2px;text-transform:uppercase}
+  .divider{width:2px;height:160px;background:#21262d;border-radius:1px}
+  .row{display:flex;align-items:center;gap:60px}
+  .anuncie{display:flex;flex-direction:column;align-items:center;gap:16px}
+  .anuncie h2{font-size:48px;font-weight:700;color:#e6edf3;line-height:1.2}
+  .anuncie h2 span{color:#FF6B00}
+  .anuncie p{font-size:22px;color:#8b949e;max-width:400px;line-height:1.5}
+  .contato{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .contato-item{font-size:20px;color:#c9d1d9;display:flex;align-items:center;gap:10px}
+  .contato-item .ic{font-size:22px}
+  .qr-area{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .qr-box{background:#fff;padding:16px;border-radius:16px;width:160px;height:160px;display:flex;align-items:center;justify-content:center}
+  .qr-label{font-size:15px;color:#8b949e;text-align:center}
+  .bottom{padding:14px 50px;background:#FF6B00;display:flex;justify-content:space-between;align-items:center}
+  .bottom .marca{font-size:18px;font-weight:700;color:#fff;letter-spacing:1px}
+  .bottom .clock{font-size:20px;font-weight:600;color:#fff;letter-spacing:2px}
+  .pulse{animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+</style>
+</head>
+<body>
+<div class="main">
+  <div class="row">
+
+    <!-- LOGO -->
+    <div class="logo-area">
+      <div class="logo-box pulse">
+        <div class="logo-icon">🚗</div>
+        <div class="logo-nome">ProTurbo</div>
+        <div class="logo-sub">RaceShop</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ANUNCIE AQUI -->
+    <div class="anuncie">
+      <h2>Anuncie<br><span>aqui</span> também!</h2>
+      <p>Seu negócio visto por centenas de pessoas todos os dias</p>
+      <div class="contato">
+        <div class="contato-item"><span class="ic">📱</span> (47) 9 XXXX-XXXX</div>
+        <div class="contato-item"><span class="ic">📧</span> contato@proturbo.com.br</div>
+        <div class="contato-item"><span class="ic">📍</span> BR-470, 2838 – Badenfurt, Blumenau</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- QR CODE -->
+    <div class="qr-area">
+      <div class="qr-box">
+        <!-- QR Code gerado via API gratuita qrserver.com - coloque seu link de contato/WhatsApp abaixo -->
+        <img
+          src="https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=https://wa.me/5547900000000?text=Quero%20anunciar%20na%20TV"
+          alt="QR Code"
+          width="128"
+          height="128"
+          style="border-radius:4px"
+        />
+      </div>
+      <div class="qr-label">Aponte a câmera<br>para falar conosco</div>
+    </div>
+
+  </div>
+</div>
+<div class="bottom">
+  <span class="marca">ProTurbo RaceShop · Badenfurt, Blumenau</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+<script>
+function updateClock(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>

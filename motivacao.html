@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Frase Motivacional</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#1f4e79;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px 80px;text-align:center;gap:24px;position:relative}
+  .tipo-badge{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:3px;padding:6px 18px;border-radius:20px;border:1px solid}
+  .tipo-frase .tipo-badge{color:#58a6ff;border-color:#58a6ff;background:#0d2040}
+  .tipo-curiosidade .tipo-badge{color:#d29922;border-color:#d29922;background:#2d2008}
+  .aspas{font-size:80px;color:#21262d;line-height:0.5;align-self:flex-start}
+  .texto{font-size:42px;font-weight:700;color:#e6edf3;line-height:1.3;max-width:1000px}
+  .autor{font-size:22px;color:#8b949e;font-style:italic}
+  .detalhe{font-size:20px;color:#8b949e;max-width:800px;line-height:1.55}
+  .progress-wrap{width:500px;height:5px;background:#21262d;border-radius:3px;overflow:hidden}
+  .progress-bar{height:100%;border-radius:3px;transition:width 0.5s linear}
+  .tipo-frase .progress-bar{background:#58a6ff}
+  .tipo-curiosidade .progress-bar{background:#d29922}
+  .bottom{padding:12px 50px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .counter{font-size:14px;color:#484f58}
+  .icon-grande{font-size:60px}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">✨ Motivação &amp; Curiosidades do Mundo</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+<div class="main" id="main">
+</div>
+<div class="bottom">
+  <span class="brand">Digital TV · Inspiração e Conhecimento</span>
+  <span class="counter" id="counter">1 / 20</span>
+</div>
+<script>
+const CONTEUDO=[
+  {tipo:'frase',icon:'💡',texto:'"O sucesso é a soma de pequenos esforços repetidos dia após dia."',autor:'Robert Collier',detalhe:''},
+  {tipo:'curiosidade',icon:'🌍',texto:'A língua portuguesa é falada por mais de 260 milhões de pessoas',autor:'',detalhe:'É o 5º idioma mais falado do mundo e o mais falado no hemisfério sul. Brasil é o maior país lusófono.'},
+  {tipo:'frase',icon:'🔥',texto:'"A persistência é o caminho do êxito."',autor:'Charles Chaplin',detalhe:''},
+  {tipo:'curiosidade',icon:'🐝',texto:'Uma abelha visita até 5.000 flores para produzir 1 colher de mel',autor:'',detalhe:'Uma colmeia produz cerca de 27 kg de mel por ano. As abelhas são responsáveis pela polinização de 1/3 dos alimentos que consumimos.'},
+  {tipo:'frase',icon:'🌟',texto:'"Acredite em você mesmo e chegará um dia em que os outros não terão outra escolha senão acreditar com você."',autor:'Cynthia Kersey',detalhe:''},
+  {tipo:'curiosidade',icon:'🧠',texto:'O cérebro humano tem mais conexões do que estrelas na Via Láctea',autor:'',detalhe:'O cérebro possui cerca de 100 bilhões de neurônios e 100 trilhões de conexões sinápticas — mais do que os 200-400 bilhões de estrelas estimadas na nossa galáxia.'},
+  {tipo:'frase',icon:'🎯',texto:'"Não importa o quanto você vai devagar, desde que não pare."',autor:'Confúcio',detalhe:''},
+  {tipo:'curiosidade',icon:'🌊',texto:'95% dos oceanos da Terra ainda não foram explorados',autor:'',detalhe:'Sabemos mais sobre a superfície da Lua do que sobre o fundo dos oceanos. Criaturas completamente desconhecidas vivem nas profundezas abissais.'},
+  {tipo:'frase',icon:'💪',texto:'"A maior glória não está em nunca cair, mas em se levantar toda vez que caímos."',autor:'Confúcio',detalhe:''},
+  {tipo:'curiosidade',icon:'🦋',texto:'Uma borboleta pode enxergar mais cores do que qualquer outro animal',autor:'',detalhe:'As borboletas possuem fotorreceptores para ultravioleta, o que lhes permite ver padrões em flores invisíveis ao olho humano.'},
+  {tipo:'frase',icon:'🚀',texto:'"O único lugar onde o sucesso vem antes do trabalho é no dicionário."',autor:'Albert Einstein',detalhe:''},
+  {tipo:'curiosidade',icon:'🌳',texto:'As árvores se comunicam entre si através de fungos no solo',autor:'',detalhe:'A chamada "Wood Wide Web" é uma rede de micélio que conecta raízes de árvores. As árvores compartilham nutrientes e até alertam umas às outras sobre pragas.'},
+  {tipo:'frase',icon:'✨',texto:'"Você é mais corajoso do que acredita, mais forte do que parece e mais inteligente do que pensa."',autor:'A.A. Milne',detalhe:''},
+  {tipo:'curiosidade',icon:'💤',texto:'Passamos em média 26 anos de vida dormindo',autor:'',detalhe:'Além disso, passamos 7 anos tentando dormir. Durante o sono, o cérebro processa memórias e elimina toxinas acumuladas ao longo do dia.'},
+  {tipo:'frase',icon:'🌈',texto:'"Grandes realizações são possíveis quando você dá importância às pequenas coisas."',autor:'Autor desconhecido',detalhe:''},
+  {tipo:'curiosidade',icon:'🍯',texto:'O mel nunca estraga — mel de 3.000 anos foi encontrado em tumbas egípcias',autor:'',detalhe:'O pH ácido, baixa umidade e presença de peróxido de hidrogênio tornam o mel naturalmente antibacteriano e com prazo de validade eterno.'},
+  {tipo:'frase',icon:'🎶',texto:'"A vida é aquilo que acontece enquanto você está ocupado fazendo outros planos."',autor:'John Lennon',detalhe:''},
+  {tipo:'curiosidade',icon:'🦈',texto:'Os tubarões são mais antigos que as árvores na Terra',autor:'',detalhe:'Os tubarões existem há 450 milhões de anos. As primeiras árvores surgiram há "apenas" 350 milhões de anos. Os tubarões sobreviveram a 5 extinções em massa.'},
+  {tipo:'frase',icon:'💎',texto:'"O talento é 1% inspiração e 99% transpiração."',autor:'Thomas Edison',detalhe:''},
+  {tipo:'curiosidade',icon:'🌙',texto:'A Lua se afasta 3,8 cm da Terra a cada ano',autor:'',detalhe:'Quando a Lua se formou, estava 10 vezes mais próxima. Daqui a 600 milhões de anos, os eclipses totais do Sol não serão mais possíveis.'},
+];
+
+let idx = Math.floor(Math.random() * CONTEUDO.length);
+let progress = 0;
+const DURACAO = 14;
+
+function updateClock(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function show(){
+  const c = CONTEUDO[idx % CONTEUDO.length];
+  const isFrase = c.tipo === 'frase';
+  const main = document.getElementById('main');
+  main.className = 'main tipo-' + c.tipo;
+
+  let html = `<div class="tipo-badge">${isFrase ? '💬 Frase do Dia' : '🌍 Você Sabia?'}</div>
+    <div class="icon-grande">${c.icon}</div>
+    <div class="texto">${c.texto}</div>`;
+
+  if(isFrase && c.autor){
+    html += `<div class="autor">— ${c.autor}</div>`;
+  }
+  if(!isFrase && c.detalhe){
+    html += `<div class="detalhe">${c.detalhe}</div>`;
+  }
+  html += `<div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>`;
+  main.innerHTML = html;
+  document.getElementById('counter').textContent = (idx % CONTEUDO.length + 1) + ' / ' + CONTEUDO.length;
+  progress = 0;
+}
+
+function tick(){
+  progress += (100 / (DURACAO * 10));
+  if(progress >= 100){ idx++; show(); }
+  const pb = document.getElementById('progress');
+  if(pb) pb.style.width = Math.min(progress,100) + '%';
+}
+
+updateClock();
+setInterval(updateClock,1000);
+show();
+setInterval(tick,100);
+</script>
+</body>
+</html>

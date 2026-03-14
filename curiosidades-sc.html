@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Curiosidades SC</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#FF6B00;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;display:flex;gap:0;overflow:hidden}
+  .left{background:#161b22;border-right:1px solid #30363d;min-width:320px;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 30px;gap:16px;text-align:center}
+  .left .big-icon{font-size:100px;animation:float 4s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .left .tag{font-size:13px;color:#FF6B00;text-transform:uppercase;letter-spacing:2px;font-weight:600}
+  .left .numero{font-size:70px;font-weight:700;color:#FF6B00;line-height:1}
+  .left .numero-label{font-size:18px;color:#8b949e}
+  .right{flex:1;display:flex;flex-direction:column;justify-content:center;padding:50px 60px;gap:20px}
+  .right .categoria{font-size:14px;color:#FF6B00;text-transform:uppercase;letter-spacing:2px;font-weight:600}
+  .right h2{font-size:40px;font-weight:700;color:#e6edf3;line-height:1.3}
+  .right p{font-size:22px;color:#8b949e;line-height:1.55;max-width:700px}
+  .right .sabia-que{font-size:16px;color:#3fb950;font-weight:600;text-transform:uppercase;letter-spacing:1px}
+  .progress-wrap{width:100%;height:4px;background:#21262d;border-radius:2px;overflow:hidden;margin-top:10px}
+  .progress-bar{height:100%;background:#FF6B00;border-radius:2px}
+  .bottom{padding:12px 50px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .counter{font-size:14px;color:#484f58}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">🏔️ Curiosidades — História e Cultura de SC</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+<div class="main">
+  <div class="left">
+    <div class="big-icon" id="icon">🌺</div>
+    <div class="tag" id="left-tag">Blumenau</div>
+    <div class="numero" id="numero"></div>
+    <div class="numero-label" id="numero-label"></div>
+  </div>
+  <div class="right">
+    <div class="sabia-que">Você sabia?</div>
+    <div class="categoria" id="categoria"></div>
+    <h2 id="titulo"></h2>
+    <p id="texto"></p>
+    <div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+  </div>
+</div>
+<div class="bottom">
+  <span class="brand">Digital TV · História &amp; Cultura Regional</span>
+  <span class="counter" id="counter">1 / 15</span>
+</div>
+<script>
+const CURIOSIDADES=[
+  {icon:'🇩🇪',tag:'Blumenau',cat:'História',titulo:'Fundada por um alemão em 1850',texto:'Dr. Hermann Blumenau liderou a colonização do Vale do Itajaí com imigrantes alemães. O nome da cidade é uma homenagem ao seu fundador.',numero:'1850',numLabel:'Ano de fundação'},
+  {icon:'🌺',tag:'Blumenau',cat:'Festa',titulo:'A 2ª maior Oktoberfest do mundo',texto:'A Oktoberfest de Blumenau é a segunda maior do mundo, perdendo apenas para a de Munique, na Alemanha. Atrai mais de 500 mil visitantes por edição.',numero:'500mil',numLabel:'Visitantes/ano'},
+  {icon:'🏔️',tag:'Santa Catarina',cat:'Geografia',titulo:'SC tem mar, serra e planalto no mesmo estado',texto:'Santa Catarina é o único estado brasileiro com todos os biomas do sul: Mata Atlântica, campos de altitude, araucárias e litoral com 531 km de praias.',numero:'531',numLabel:'km de litoral'},
+  {icon:'🧀',tag:'Região',cat:'Gastronomia',titulo:'Capital brasileira do queijo é em SC',texto:'São Joaquim e a região serrana são referência nacional na produção de queijos finos artesanais, aproveitando o clima frio e pastagens de altitude.',numero:'-17',numLabel:'°C em São Joaquim'},
+  {icon:'🚢',tag:'Joinville',cat:'Cultura',titulo:'Maior festival de dança do mundo',texto:'O Festival de Dança de Joinville é reconhecido pelo Guinness como o maior do planeta, com mais de 6.000 bailarinos participantes por edição.',numero:'6mil',numLabel:'Bailarinos'},
+  {icon:'🏭',tag:'Santa Catarina',cat:'Economia',titulo:'SC é o maior exportador de frango do Brasil',texto:'Santa Catarina lidera as exportações brasileiras de carne de frango. Empresas como Seara, Aurora e Perdigão têm raízes no estado.',numero:'#1',numLabel:'Exportador'},
+  {icon:'🌊',tag:'Florianópolis',cat:'Turismo',titulo:'A Ilha da Magia tem 100 praias',texto:'Florianópolis possui cerca de 100 praias, cada uma com seu próprio caráter. A Lagoa da Conceição é a laguna mais famosa da região.',numero:'100',numLabel:'Praias'},
+  {icon:'🎻',tag:'Blumenau',cat:'Cultura',titulo:'A arquitetura enxaimel é patrimônio vivo',texto:'O centro histórico de Blumenau preserva construções no estilo enxaimel alemão, com vigas de madeira aparentes. A técnica tem mais de 500 anos de tradição.',numero:'500',numLabel:'Anos de tradição'},
+  {icon:'❄️',tag:'Santa Catarina',cat:'Clima',titulo:'SC é o estado que mais neva no Brasil',texto:'A Serra Catarinense, especialmente Urupema e Urubici, registra neve quase todos os anos. São Joaquim já chegou a -17°C, o menor valor já registrado no Sul.',numero:'#1',numLabel:'Em nevascas'},
+  {icon:'🍺',tag:'Blumenau',cat:'Gastronomia',titulo:'Blumenau tem a maior concentração de cervejarias artesanais do país',texto:'Com tradição cervejeira herdada dos colonizadores alemães, o Vale do Itajaí tem mais cervejarias artesanais por habitante do que qualquer outra região do Brasil.',numero:'#1',numLabel:'Cervejarias/hab'},
+  {icon:'🌸',tag:'Jaraguá do Sul',cat:'Indústria',titulo:'A maior tecelagem da América Latina fica em SC',texto:'A Coteminas e outras grandes indústrias têxteis têm sede em Santa Catarina, que é o maior polo têxtil e de confecções da América Latina.',numero:'#1',numLabel:'Polo Têxtil'},
+  {icon:'🎶',tag:'Blumenau',cat:'Música',titulo:'O acordeão é símbolo da cultura local',texto:'A música germânica, com seus acordeões, bandas e corais, ainda é parte viva da cultura de Blumenau. Os festivais de música alemã acontecem o ano todo.',numero:'173',numLabel:'Anos de colonização'},
+  {icon:'🦁',tag:'Santa Catarina',cat:'Natureza',titulo:'SC tem a maior onça-pintada em cativeiro',texto:'O Zoológico de Pomerode, em SC, é um dos mais completos do Brasil e referência em preservação de fauna sul-americana.',numero:'1934',numLabel:'Fundação do zoo'},
+  {icon:'🏄',tag:'Florianópolis',cat:'Esporte',titulo:'Capital do surfe brasileiro',texto:'Florianópolis é berço de campeões mundiais de surfe. A Praia da Joaquina e Mole são algumas das ondas mais famosas do Brasil.',numero:'3x',numLabel:'Campeões mundiais'},
+  {icon:'🌿',tag:'Blumenau',cat:'Natureza',titulo:'O Rio Itajaí-Açu nasce nas serras e corta a cidade',texto:'O Rio Itajaí-Açu percorre 187 km antes de desaguar no Atlântico em Itajaí. Blumenau foi fundada justamente às suas margens por facilitar o transporte de colonos.',numero:'187',numLabel:'km do rio'},
+];
+
+let idx = Math.floor(Math.random() * CURIOSIDADES.length);
+let progress = 0;
+const DURACAO = 14;
+
+function updateClock(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function show(){
+  const c = CURIOSIDADES[idx % CURIOSIDADES.length];
+  document.getElementById('icon').textContent = c.icon;
+  document.getElementById('left-tag').textContent = c.tag;
+  document.getElementById('numero').textContent = c.numero;
+  document.getElementById('numero-label').textContent = c.numLabel;
+  document.getElementById('categoria').textContent = c.cat;
+  document.getElementById('titulo').textContent = c.titulo;
+  document.getElementById('texto').textContent = c.texto;
+  document.getElementById('counter').textContent = (idx % CURIOSIDADES.length + 1) + ' / ' + CURIOSIDADES.length;
+  progress = 0;
+}
+
+function tick(){
+  progress += (100 / (DURACAO * 10));
+  if(progress >= 100){ idx++; show(); }
+  document.getElementById('progress').style.width = Math.min(progress,100) + '%';
+}
+
+updateClock();
+setInterval(updateClock,1000);
+show();
+setInterval(tick,100);
+</script>
+</body>
+</html>

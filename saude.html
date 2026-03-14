@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Dicas de Saúde</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0d1117;color:#fff;font-family:-apple-system,'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  .top-bar{background:#1a7a4a;padding:14px 50px;display:flex;justify-content:space-between;align-items:center}
+  .top-bar .label{font-size:22px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+  .top-bar .clock{font-size:22px;font-weight:600;letter-spacing:2px}
+  .main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:50px;text-align:center;gap:24px}
+  .icon{font-size:90px;animation:pulse 3s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+  .categoria{font-size:14px;color:#3fb950;text-transform:uppercase;letter-spacing:3px;font-weight:600}
+  .dica{font-size:40px;font-weight:700;color:#e6edf3;line-height:1.3;max-width:900px}
+  .detalhe{font-size:22px;color:#8b949e;max-width:820px;line-height:1.55}
+  .alerta{font-size:16px;color:#d29922;background:#2d2008;border:1px solid #d29922;border-radius:10px;padding:10px 22px;max-width:700px}
+  .progress-wrap{width:400px;height:5px;background:#21262d;border-radius:3px;overflow:hidden}
+  .progress-bar{height:100%;background:#3fb950;border-radius:3px}
+  .bottom{padding:12px 50px;background:#161b22;border-top:1px solid #30363d;display:flex;justify-content:space-between;align-items:center}
+  .bottom .brand{font-size:15px;color:#8b949e}
+  .counter{font-size:14px;color:#484f58}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <span class="label">💚 Saúde &amp; Bem-Estar — Dica do Dia</span>
+  <span class="clock" id="clock">--:--</span>
+</div>
+<div class="main">
+  <div class="icon" id="icon">💪</div>
+  <div class="categoria" id="categoria">Saúde</div>
+  <div class="dica" id="dica"></div>
+  <div class="detalhe" id="detalhe"></div>
+  <div class="alerta" id="alerta" style="display:none"></div>
+  <div class="progress-wrap"><div class="progress-bar" id="progress"></div></div>
+</div>
+<div class="bottom">
+  <span class="brand">Digital TV · Saúde &amp; Bem-Estar</span>
+  <span class="counter" id="counter">1 / 15</span>
+</div>
+<script>
+const DICAS=[
+  {cat:'Hidratação',icon:'💧',dica:'Beba pelo menos 2 litros de água por dia',detalhe:'A desidratação causa cansaço, dor de cabeça e dificuldade de concentração. Mantenha uma garrafa de água sempre por perto.',alerta:''},
+  {cat:'Movimento',icon:'🚶',dica:'Caminhe 30 minutos por dia',detalhe:'Uma caminhada diária reduz o risco de doenças cardíacas em até 35%. Não precisa ser de uma vez — três caminhadas de 10 minutos têm o mesmo efeito.',alerta:''},
+  {cat:'Sono',icon:'😴',dica:'Durma entre 7 e 9 horas por noite',detalhe:'A falta de sono está ligada a obesidade, diabetes, pressão alta e problemas de memória. Tente dormir e acordar no mesmo horário todos os dias.',alerta:''},
+  {cat:'Alimentação',icon:'🥗',dica:'Coma frutas e vegetais em todas as refeições',detalhe:'A OMS recomenda no mínimo 400g de frutas e legumes por dia. Eles protegem o coração, fortalecem a imunidade e reduzem o câncer.',alerta:''},
+  {cat:'Postura',icon:'🪑',dica:'Levante da cadeira a cada 1 hora',detalhe:'Ficar sentado por longos períodos aumenta o risco de problemas na coluna e circulação. Um simples alongamento de 2 minutos já faz diferença.',alerta:''},
+  {cat:'Saúde Mental',icon:'🧠',dica:'Pratique 5 minutos de respiração profunda',detalhe:'Respirar lentamente ativa o sistema nervoso parassimpático e reduz o estresse imediatamente. Inspire por 4 segundos, segure 4, expire por 6.',alerta:''},
+  {cat:'Prevenção',icon:'🩺',dica:'Faça checkup médico anual',detalhe:'Muitas doenças silenciosas como diabetes, hipertensão e colesterol alto não dão sintomas. O exame de rotina é a melhor forma de detectar cedo.',alerta:'⚕️ Consulte sempre seu médico para exames periódicos.'},
+  {cat:'Alimentação',icon:'🍳',dica:'Reduza o açúcar processado na dieta',detalhe:'O açúcar em excesso causa inflamação, favorece diabetes e aumenta triglicerídeos. Troque refrigerantes por água saborizada ou chá sem açúcar.',alerta:''},
+  {cat:'Movimento',icon:'🏋️',dica:'Musculação previne a perda de massa óssea',detalhe:'Exercícios de força são essenciais a partir dos 30 anos, quando o corpo começa a perder massa muscular e óssea. Basta 2x por semana.',alerta:''},
+  {cat:'Pele',icon:'☀️',dica:'Use protetor solar todos os dias',detalhe:'O sol é responsável por 80% do envelhecimento da pele. O protetor solar previne câncer de pele e manchas — mesmo em dias nublados.',alerta:''},
+  {cat:'Saúde Mental',icon:'🌿',dica:'Passe tempo na natureza toda semana',detalhe:'Estudos mostram que 20 minutos em contato com a natureza reduzem o cortisol (hormônio do estresse) em até 21%. Um parque já resolve.',alerta:''},
+  {cat:'Digestão',icon:'🦠',dica:'Inclua probióticos na sua alimentação',detalhe:'Iogurte natural, kefir e kombucha fortalecem a flora intestinal, que regula a imunidade, o humor e até o peso corporal.',alerta:''},
+  {cat:'Visão',icon:'👁️',dica:'Descanse os olhos a cada 20 minutos de tela',detalhe:'A regra 20-20-20: a cada 20 minutos de tela, olhe para algo a 20 metros de distância por 20 segundos. Previne a síndrome do olho seco.',alerta:''},
+  {cat:'Coração',icon:'❤️',dica:'Controle a pressão arterial regularmente',detalhe:'Hipertensão é a principal causa de AVC e infarto no Brasil. A medição é simples e gratuita em farmácias. Pressão ideal: abaixo de 120/80 mmHg.',alerta:'⚕️ Se a pressão estiver alta com frequência, procure um médico.'},
+  {cat:'Bem-Estar',icon:'🎵',dica:'Ouvir música reduz a dor e o estresse',detalhe:'A música ativa a produção de dopamina e endorfina no cérebro. 15 minutos de música que você gosta já melhoram o humor comprovadamente.',alerta:''},
+];
+
+let idx = Math.floor(Math.random() * DICAS.length);
+let progress = 0;
+const DURACAO = 14;
+
+function updateClock(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+function show(){
+  const d = DICAS[idx % DICAS.length];
+  document.getElementById('icon').textContent = d.icon;
+  document.getElementById('categoria').textContent = d.cat;
+  document.getElementById('dica').textContent = d.dica;
+  document.getElementById('detalhe').textContent = d.detalhe;
+  const al = document.getElementById('alerta');
+  if(d.alerta){ al.textContent = d.alerta; al.style.display='block'; }
+  else { al.style.display='none'; }
+  document.getElementById('counter').textContent = (idx % DICAS.length + 1) + ' / ' + DICAS.length;
+  progress = 0;
+}
+
+function tick(){
+  progress += (100 / (DURACAO * 10));
+  if(progress >= 100){ idx++; show(); }
+  document.getElementById('progress').style.width = Math.min(progress,100) + '%';
+}
+
+updateClock();
+setInterval(updateClock,1000);
+show();
+setInterval(tick,100);
+</script>
+</body>
+</html>
